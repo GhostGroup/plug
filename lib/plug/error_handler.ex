@@ -79,12 +79,26 @@ defmodule Plug.ErrorHandler do
 
   @doc false
   def __catch__(conn, kind, reason, wrapped_reason, stack, handle_errors) do
+    require Logger
+
+    Logger.info("error_handler.ex __catch__() kind: #{inspect(kind)}")
+    Logger.info("error_handler.ex __catch__() reason #{inspect(reason)}")
+    Logger.info("error_handler.ex __catch__() wrapped_reason: #{inspect(wrapped_reason)}")
+
     receive do
       @already_sent ->
+        Logger.info("error_handler.ex __catch__() calling send()")
         send(self(), @already_sent)
     after
       0 ->
+        Logger.info("error_handler.ex __catch__() after 0")
+        Logger.info("error_handler.ex __catch__() kind: #{inspect(kind)}")
+
         normalized_reason = Exception.normalize(kind, wrapped_reason, stack)
+
+        Logger.info(
+          "error_handler.ex __catch__() normalized_reason: #{inspect(normalized_reason)}"
+        )
 
         conn
         |> Plug.Conn.put_status(status(kind, normalized_reason))
